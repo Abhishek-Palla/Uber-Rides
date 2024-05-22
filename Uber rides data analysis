@@ -1,0 +1,206 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+import os
+
+os.listdir(r"C:\Users\palla\Desktop\Data Analyst Portfolio\uber data Analysis\Datasets")
+
+uber_15 =pd.read_csv(r"C:\Users\palla\Desktop\Data Analyst Portfolio\uber data Analysis\Datasets/uber-raw-data-janjune-15_sample.csv"
+)
+uber_15
+
+
+uber_15.shape
+
+# Check for the duplicates in the data
+
+uber_15.duplicated().sum()
+
+# Dropping duplicates from the data
+
+uber_15.drop_duplicates(inplace = True)
+
+uber_15.duplicated().sum()
+
+# lets think that objects are Strings
+ # But how can pickup_date be String it is supposed to be date time
+
+uber_15.dtypes
+
+uber_15['Pickup_date'][0]
+
+type(uber_15['Pickup_date'][0])
+
+uber_15['Pickup_date'].dtype
+
+# lets change the datatype from string to Date time
+
+uber_15['Pickup_date'] = pd.to_datetime(uber_15['Pickup_date'])
+
+type(uber_15['Pickup_date'][0])
+
+uber_15.dtypes
+
+# After Studying the data
+
+# 1.Which Month have maximum Uber Pickups in New York City?
+
+uber_15
+
+# dt-datetime
+uber_15['month']=uber_15['Pickup_date'].dt.month_name()
+
+uber_15['month'].value_counts()
+
+uber_15['month'].value_counts().plot(kind ='bar')
+
+#  Extracting Days,day_name, hours,minutes
+
+uber_15['weekday'] = uber_15['Pickup_date'].dt.day_name()
+uber_15['day'] = uber_15['Pickup_date'].dt.day
+uber_15['hour'] = uber_15['Pickup_date'].dt.hour
+uber_15['minute'] = uber_15['Pickup_date'].dt.minute
+
+uber_15.head()
+
+# Creating a Pivot table for the Weekdays and Months
+
+pivot =pd.crosstab(index= uber_15['month'],columns= uber_15['weekday'])
+
+pivot
+
+pivot.plot(kind = 'bar', figsize =(8,6))
+
+# Find Hourly Rush in New York City on all days
+
+uber_15
+
+summary =uber_15.groupby(['weekday','hour'], as_index = False).size()
+
+summary
+
+plt.figure(figsize =(10,6))
+sns.pointplot(x ='hour',y='size',hue ='weekday',data= summary)
+
+# Which Base_number has most number of Active Vehicles?
+
+uber_15
+
+uber_15.columns
+
+# We have the Dispatching base_num in this data but we don't have any Active Vehicles in this data 
+
+
+os.listdir(r"C:\Users\palla\Desktop\Data Analyst Portfolio\uber data Analysis\Datasets")
+
+uber_foil =pd.read_csv(r"C:\Users\palla\Desktop\Data Analyst Portfolio\uber data Analysis\Datasets/Uber-Jan-Feb-FOIL.csv")
+
+uber_foil
+
+uber_foil.shape
+
+!pip install chart_studio
+!pip install plotly
+
+import chart_studio.plotly as py
+import plotly.graph_objs as go
+import plotly.express as px
+
+from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
+
+init_notebook_mode(connected = True)
+
+uber_foil.columns
+
+px.box(x ='dispatching_base_number', y='active_vehicles',data_frame = uber_foil)
+
+px.violin(x ='dispatching_base_number', y='active_vehicles',data_frame = uber_foil)
+
+# Collect Entire Data and make it ready for the Data Analysis
+
+files =os.listdir(r"C:\Users\palla\Desktop\Data Analyst Portfolio\uber data Analysis\Datasets")[-8:]
+
+files.remove('uber-raw-data-janjune-15.csv')
+
+files
+
+files.remove('uber-raw-data-janjune-15_sample.csv')
+
+files
+
+final = pd.DataFrame()
+
+path =r"C:\Users\palla\Desktop\Data Analyst Portfolio\uber data Analysis\Datasets"
+
+for file in files:
+    current_df = pd.read_csv(path+'/'+file)
+    final = pd.concat([current_df, final])
+
+final.shape
+
+final.duplicated().sum()
+
+final.drop_duplicates(inplace=True)
+
+final.head()
+
+
+
+
+
+# At what locations of New York City we are getting rush?
+
+# It is better to choose Map based visualization like heatmaps etc
+
+rush_uber =final.groupby(['Lat','Lon'],as_index = False).size()
+
+rush_uber.head()
+
+# First we have to create a base map and can show heat map by mapping the data  on it
+
+!pip install folium
+
+import folium
+
+baseMap =folium.Map()
+
+baseMap
+
+from folium.plugins import HeatMap
+
+HeatMap(rush_uber).add_to(baseMap)
+
+baseMap
+
+
+
+
+
+# Examine rush on Hour and Weekday
+
+final.columns
+
+final.head()
+
+final.dtypes
+
+# As we have derived data from 6 csvs so we get index 0 values
+final['Date/Time'][0]
+
+final['Date/Time']=pd.to_datetime(final['Date/Time'], format ="%m/%d/%Y %H:%M:%S")
+
+final['Date/Time'].dtype
+
+final['day'] = final['Date/Time'].dt.day
+final['hour'] = final['Date/Time'].dt.hour
+
+pivot =final.groupby(['day','hour']).size().unstack()
+
+pivot
+
+pivot.style.background_gradient()
+
+
+
